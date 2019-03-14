@@ -18,25 +18,21 @@ class MainActivity : AppCompatActivity(), Connector.IConnect {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        requestPermissions()
+        ConnectorPkg.setApplicationUIContext(this)
+        ConnectorPkg.initialize()
 
-        if(hasPersmissions()) {
-            ConnectorPkg.setApplicationUIContext(this)
-            ConnectorPkg.initialize()
-
-            start.setOnClickListener {
-                start() // Doesn't work if moved out of click event???
-            }
-
-            connect.setOnClickListener {
-                connect()
-            }
-
-            disconnect.setOnClickListener {
-                disconnect()
-            }
-
+        start.setOnClickListener {
+            requestPermissions()
         }
+
+        connect.setOnClickListener {
+            connect()
+        }
+
+        disconnect.setOnClickListener {
+            disconnect()
+        }
+
     }
 
     private fun hasPersmissions(): Boolean {
@@ -50,7 +46,17 @@ class MainActivity : AppCompatActivity(), Connector.IConnect {
             this,
             arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO),
             1
-        ) // Request code?
+        )
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            requestCode -> {
+                if ((grantResults.isNotEmpty() && hasPersmissions())) {
+                    start()
+                }
+            }
+        }
     }
 
     private fun start() {
