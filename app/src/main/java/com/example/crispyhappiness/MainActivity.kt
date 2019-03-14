@@ -1,8 +1,12 @@
 package com.example.crispyhappiness
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.vidyo.VidyoClient.Connector.Connector
 import com.vidyo.VidyoClient.Connector.ConnectorPkg
 import kotlinx.android.synthetic.main.activity_main.*
@@ -14,20 +18,39 @@ class MainActivity : AppCompatActivity(), Connector.IConnect {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        ConnectorPkg.setApplicationUIContext(this)
-        ConnectorPkg.initialize()
+        requestPermissions()
 
-        button.setOnClickListener {
-            start()
-        }
+        if(hasPersmissions()) {
+            ConnectorPkg.setApplicationUIContext(this)
+            ConnectorPkg.initialize()
 
-        button2.setOnClickListener {
-            connect()
-        }
+            start.setOnClickListener {
+                start() // Doesn't work if moved out of click event???
+            }
 
-        button3.setOnClickListener {
-            disconnect()
+            connect.setOnClickListener {
+                connect()
+            }
+
+            disconnect.setOnClickListener {
+                disconnect()
+            }
+
         }
+    }
+
+    private fun hasPersmissions(): Boolean {
+        return arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO).all {
+            return ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun requestPermissions() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO),
+            1
+        ) // Request code?
     }
 
     private fun start() {
@@ -54,14 +77,10 @@ class MainActivity : AppCompatActivity(), Connector.IConnect {
     override fun onSuccess() {}
 
     override fun onFailure(reason: Connector.ConnectorFailReason?) {
-        logFail(reason.toString())
+        Log.d("VIDYOFAIL", reason?.toString() ?: "UNDEFINED")
     }
 
     override fun onDisconnected(reason: Connector.ConnectorDisconnectReason?) {
-        logFail(reason.toString())
-    }
-
-    fun logFail(reason: String?) {
-        Log.d("VIDYOFAIL", reason ?: "UNDEFINED")
+        Log.d("VIDYODISCONNECT", reason?.toString() ?: "UNDEFINED")
     }
 }
